@@ -1,0 +1,3066 @@
+
+<?php
+    include "validate_customer.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="customer_add_style.css">
+</head>
+
+<body>
+    <form class="add_customer_form" action="add_beneficiary_action.php" method="post">
+        <div class="flex-container-form_header">
+            <h1 id="form_header">Please fill in beneficiary details...</h1>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>First Name :</label><br>
+                <input name="fname" size="30" type="text" required />
+            </div>
+            <div  class=container>
+                <label>Last Name :</b></label><br>
+                <input name="lname" size="30" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Account No :</label><br>
+                <input name="acno" size="25" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Email-ID :</label><br>
+                <input name="email" size="30" type="text" required />
+            </div>
+            <div  class=container>
+                <label>Phone No. :</b></label><br>
+                <input name="phno" size="30" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class="container">
+                <a href="/beneficiary.php" class="button">Go Back</a>
+            </div>
+
+            <div class="container">
+                <button type="submit">Submit</button>
+            </div>
+
+            <div class="container">
+                <button type="reset" class="reset" onclick="return confirmReset();">Reset</button>
+            </div>
+        </div>
+
+    </form>
+
+    <script>
+    function confirmReset() {
+        return confirm('Do you really want to reset?')
+    }
+    </script>
+
+</body>
+</html>
+ 78  net-banking/add_beneficiary_action.php 
+@@ -0,0 +1,78 @@
+<?php
+    include "validate_customer.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+
+    $fname = mysqli_real_escape_string($conn, $_POST["fname"]);
+    $lname = mysqli_real_escape_string($conn, $_POST["lname"]);
+    $acno = mysqli_real_escape_string($conn, $_POST["acno"]);
+    $email = mysqli_real_escape_string($conn, $_POST["email"]);
+    $phno = mysqli_real_escape_string($conn, $_POST["phno"]);
+
+    $id = $_SESSION['loggedIn_cust_id'];
+    $sql0 = "SELECT cust_id FROM customer WHERE first_name='".$fname."' AND
+                                                last_name='".$lname."' AND
+                                                account_no='".$acno."' AND
+                                                email='".$email."' AND
+                                                phone_no='".$phno."'";
+    $result = $conn->query($sql0);
+
+    $success = 0;
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $beneficiary_id = $row["cust_id"];
+
+        if ($id != $beneficiary_id) {
+            $sql1 = "INSERT INTO beneficiary".$id." VALUES(
+                        NULL,
+                        '$beneficiary_id',
+                        '$email',
+                        '$phno',
+                        '$acno'
+                    )";
+
+            if (($conn->query($sql1) === TRUE)) {
+                $success = 1;
+            }
+        }
+        else {
+            $success = -1;
+        }
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="action_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <?php
+            if ($success == 1) { ?>
+                <p id="info"><?php echo "Beneficiary successfully added !\n"; ?></p>
+            <?php } ?>
+
+            <?php
+            if ($success == 0) { ?>
+                <p id="info"><?php echo "Invalid data entered/Connection error !\n"; ?></p>
+            <?php } ?>
+
+            <?php
+            if ($success == -1) { ?>
+                <p id="info"><?php echo "Can't add self as beneficiary !\n"; ?></p>
+            <?php } ?>
+        </div>
+
+        <div class="flex-item">
+            <a href="/beneficiary.php" class="button">Go Back</a>
+        </div>
+    </div>
+
+</body>
+</html>
+ 35  net-banking/admin_home.php 
+@@ -0,0 +1,35 @@
+<?php
+    include "validate_admin.php";
+    include "header.php";
+    include "user_navbar.php";
+    include "admin_sidebar.php";
+    include "session_timeout.php";
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="admin_home_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <h1 id="customer">
+                Welcome Admin !
+            </h1>
+            <p id="customer" style="max-width:800px">
+                From here you can manage all of core Internet Banking settings.
+                You can add/manage customers, view their transactions, edit their
+                details and even delete them. You can also post news on the website.
+                <br>Please keep in mind that with big power comes big responsibility.
+                Therefore please do not misuse your admin control to create trouble.
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<?php include "easter_egg.php"; ?>
+ 57  net-banking/admin_home_style.css 
+@@ -0,0 +1,57 @@
+.flex-container {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    margin-left: 256px;
+    width: auto;
+    height: auto;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+.flex-item {
+    width: auto;
+    height: auto;
+    margin: 10px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1[id="customer"] {
+    margin: 20px;
+    line-height: normal;
+    font-family: Roboto-Light;
+    font-size: 40px;
+    text-align: center;
+    color: #212121;
+    line-height: 55px;
+    border-bottom: 2px solid #212121;
+    padding: 30px 100px;
+}
+
+p[id="customer"] {
+    max-width: 600px;
+    margin: 20px;
+    font-size: 30px;
+    font-family: Roboto-Regular;
+    color: #212121;
+    line-height: 42px;
+    padding: 10px 100px;
+}
+
+@media screen and (max-width: 1080px) {
+    h1[id="customer"] {
+        padding: 30px 0px;
+    }
+
+    p[id="customer"] {
+        padding: 10px 0px;
+    }
+}
+
+@media screen and (max-width: 855px) {
+    .flex-container {
+        margin: auto;
+    }
+}
+ 48  net-banking/admin_login.php 
+@@ -0,0 +1,48 @@
+<?php
+    include "header.php";
+
+    if (isset($_GET['loginFailed'])) {
+        $message = "Invalid Credentials ! Please try again.";
+        echo "<script type='text/javascript'>alert('$message');</script>";
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="admin_login_style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+
+<body>
+    <form action="admin_login_action.php" method="post">
+        <div class="flex-container-1">
+            <div class="flex-item">
+                <h2>Administrator Login</h2>
+            </div>
+
+            <label><b>Username</b></label>
+            <div class="flex-item">
+                <input type="text" name="admin_uname" required>
+            </div>
+
+            <label><b>Password</b></label>
+            <div class="flex-item">
+                <input type="password" name="admin_psw" required>
+            </div>
+        </div>
+
+        <div class="flex-container-2">
+            <div class="flex-item">
+                <button type="submit">Login</button>
+            </div>
+
+            <div class="flex-item">
+                <button type="button" class="cancelbtn">Cancel</button>
+            </div>
+        </div>
+    </form>
+
+</body>
+</html>
+ 24  net-banking/admin_login_action.php 
+@@ -0,0 +1,24 @@
+<?php
+    include "connect.php";
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    $uname = mysqli_real_escape_string($conn, $_POST["admin_uname"]);
+    $pwd = mysqli_real_escape_string($conn, $_POST["admin_psw"]);
+
+    $sql0 =  "SELECT * FROM admin WHERE uname='".$uname."' AND pwd='".$pwd."'";
+    $result = $conn->query($sql0);
+
+    if (($result->num_rows) > 0) {
+        $_SESSION['isAdminValid'] = true;
+        $_SESSION['LAST_ACTIVITY'] = time();
+        header("location:admin_home.php");
+    }
+    else {
+        session_destroy();
+        die(header("location:admin_login.php?loginFailed=true"));
+    }
+?>
+ 96  net-banking/admin_login_style.css 
+@@ -0,0 +1,96 @@
+@import url("fonts.css");
+
+body {
+    background-color: #E0E0E0;
+}
+
+h2 {
+    font-family: Roboto-Regular;
+    color: #f44336;
+}
+
+b {
+    color: #1565C0;
+    font-family: Roboto-Regular;
+    margin-left: 10px;
+}
+
+/* Full-width inputs */
+input[type=text], input[type=password] {
+    font-family: Roboto-Regular;
+    color: black;
+    font-size: 24px;
+    width: 100%;
+    margin: 8px 0;
+    padding: 12px 1px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+
+/* Set a style for all buttons */
+button {
+    font-family: Roboto-Regular;
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 3px;
+}
+
+/* Add a hover effect for buttons */
+button:hover {
+    opacity: 0.8;
+}
+
+/* Extra style for the cancel button (red) */
+.cancelbtn {
+    width: auto;
+    background-color: #f44336;
+}
+
+.flex-container-1 {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    width: 50%;
+    max-width: 600px;
+    height: auto;
+    margin-top: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FAFAFA;
+    box-shadow: 5px 5px 2px #888888;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.flex-item {
+    width: auto;
+    height: auto;
+    margin: 10px;
+}
+
+.flex-container-2 {
+    display: -webkit-flex;
+    display: flex;
+    width: 50%;
+    max-width: 600px;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FAFAFA;
+    box-shadow: 5px 5px 2px #888888;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+@media screen and (max-width: 1024px) {
+    .flex-container-1 {width: 100%}
+    .flex-container-2 {width: 100%}
+}
+ 83  net-banking/admin_sidebar.php 
+@@ -0,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="admin_sidebar_style.css">
+</head>
+<body>
+    <div class="sidenav" id="theSideNav">
+        <a href="javascript:void(0)" id="closebtn" onclick="closeNav()">&times;</a>
+        <a href="/admin_home.php">Home</a>
+        <a id="label">My Customers</a>
+        <a href="/customer_add.php">Add Customer</a>
+        <a href="/manage_customers.php">Manage Customers</a>
+        <a href="#h">Customer Griveances</a>
+        <a id="label">Website Management</a>
+        <a href="/post_news.php">Post News</a>
+    </div>
+<script>
+// For-Loop below is used to create active links and accordingly color them.
+// Helps in recognizing which tab is selected.
+for (var i = 0; i < document.links.length; i++) {
+    if (document.URL.indexOf('?') > 0) {
+        sanitizedURL = document.URL.substring(0, document.URL.indexOf('?'));
+    }
+    else {
+        sanitizedURL = document.URL;
+    }
+    if (document.links[i].href == sanitizedURL) {
+        document.links[i].className = 'active';
+    }
+}
+function openNav() {
+    document.getElementById("theSideNav").style.width = "256px";
+    var x = document.getElementById("theSideNav");
+    if (x.className === "sidenav sidenav-fixed") {
+        x.className += " responsive";
+    }
+}
+// Never use get window size of jquery, in javascript, they dont work !
+// lesson learnt !!!
+function closeNav() {
+    if (document.documentElement.clientWidth < 856) {
+        document.getElementById("theSideNav").style.width = "0";
+    }
+}
+$(document).ready(function() {
+    $(window).resize(function () {
+        if ($(window).width() > 855)
+            document.getElementById("theSideNav").style.width = "256px";
+        if (($(window).width()) < 856){
+            $('#closebtn').trigger('click');
+        }
+    });
+});
+// Function below is jquery-3 function used for making the navbar sticky
+$(document).ready(function() {
+    $(window).scroll(function () {
+        var x1 = document.getElementById("theSideNav").style.width;
+        if ($(window).scrollTop() > 120) {
+          $("#theSideNav").addClass('sidenav-fixed');
+            if (($(window).width()) < 856 && x1 == "256px") {
+                $('#hamburger').trigger('click');
+            }
+        }
+        if ($(window).scrollTop() < 121) {
+          $("#theSideNav").removeClass('sidenav-fixed');
+        }
+    });
+});
+</script>
+</body>
+</html>
+ 80  net-banking/admin_sidebar_style.css 
+@@ -0,0 +1,80 @@
+.sidenav {
+    width: 256px;
+    background-color: #eee;
+    height: 90vh;
+    float: left;
+    overflow-y: auto;
+    box-shadow: 1px 1px 5px #888888;
+}
+
+.sidenav a {
+    font-family: OpenSans-Regular;
+    font-size: 19px;
+    color: #212121;
+    display: block;
+    padding: 22px 16px;
+    text-decoration: none;
+}
+
+.sidenav a:hover {
+    background-color: #ddd;
+}
+
+.sidenav a[id="label"] {
+    font-family: OpenSans-Bold;
+    font-size: 22px;
+    color: #212121;
+    display: block;
+    padding: 11px;
+    text-decoration: none;
+    border-top: 1px solid #212121;
+    border-bottom: 1px solid #212121;
+}
+
+.sidenav a[id="label"]:hover {
+    background-color: transparent;
+}
+
+.sidenav a.active {
+    background-color: #ccc;
+}
+
+/* Sticky Sidebar */
+.sidenav-fixed {
+    height: auto;
+    top: 53px;
+    z-index: 100;
+    bottom: 0;
+    position: fixed;
+}
+
+.sidenav a[id="closebtn"] {
+    display: none;
+}
+
+@media screen and (max-width: 855px) {
+    .sidenav {
+        height: 100vh;
+        width: 0;
+        margin-top: -53px;
+        z-index: 100;
+        top: 131px;
+        background-color: #eee;
+        overflow-x: hidden;
+        transition: 0.5s;
+        box-shadow: 3px 3px 20px #000000;
+    }
+
+    .sidenav a[id="closebtn"] {
+        font-family: OpenSans-Regular;
+        font-size: 19px;
+        color: #212121;
+        display: block;
+        margin-left: 200px;
+    }
+
+    .sidenav.sidenav-fixed.responsive {
+        top: 53px;
+        z-index: 100;
+    }
+}
+ 71  net-banking/atm_simulator.php 
+@@ -0,0 +1,71 @@
+<?php
+    include "validate_customer.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="customer_add_style.css">
+</head>
+
+<body>
+    <form class="add_customer_form" action="atm_simulator_action.php" method="post">
+        <div class="flex-container-form_header">
+            <h1 id="form_header">ATM Simulator</h1>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Enter Amount (in INR) :</label><br>
+                <input name="amt" size="24" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Type :</label>
+            </div>
+            <div class="flex-container-radio">
+                <div class="container">
+                    <input type="radio" name="type" value="debit" id="debit-radio" checked>
+                    <label id="radio-label" for="debit-radio"><span class="radio">Debit</span></label>
+                </div>
+                <div class="container">
+                    <input type="radio" name="type" value="credit" id="credit-radio">
+                    <label id="radio-label" for="credit-radio"><span class="radio">Credit</span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div  class=container>
+                <label>PIN(4 digit) :</b></label><br>
+                <input name="pin" size="12" type="password" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class="container">
+                <button type="submit">Submit</button>
+            </div>
+
+            <div class="container">
+                <button type="reset" class="reset" onclick="return confirmReset();">Reset</button>
+            </div>
+        </div>
+
+    </form>
+
+    <script>
+    function confirmReset() {
+        return confirm('Do you really want to reset?')
+    }
+    </script>
+
+</body>
+</html>
+ 113  net-banking/atm_simulator_action.php 
+@@ -0,0 +1,113 @@
+<?php
+    include "validate_customer.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+
+    $id = $_SESSION['loggedIn_cust_id'];
+    $amt = mysqli_real_escape_string($conn, $_POST["amt"]);
+    $type = mysqli_real_escape_string($conn, $_POST["type"]);
+    $pin = mysqli_real_escape_string($conn, $_POST["pin"]);
+
+    $sql0 = "SELECT balance FROM passbook".$id." ORDER BY trans_id DESC LIMIT 1";
+    $result = $conn->query($sql0);
+    $row = $result->fetch_assoc();
+    $balance = $row["balance"];
+
+    /*  Set appropriate error number if errors are encountered.
+        Key (for err_no) :
+        -1 = Connection Error.
+         0 = Successful Transaction.
+         1 = Insufficient Funds.
+         2 = Wrong PIN entered. */
+    $err_no = -1;
+
+    $sql_pin = "SELECT * FROM customer WHERE cust_id=".$id." AND pin='".$pin."'";
+    $result_pin = $conn->query($sql_pin);
+
+    if (($result_pin->num_rows) > 0) {
+        // For Credit transactions
+        if ($type == "credit") {
+            $final_balance = $balance + $amt;
+
+            $sql1 = "INSERT INTO passbook".$id." VALUES(
+                        NULL,
+                        NOW(),
+                        'Cash Deposit',
+                        '0',
+                        '$amt',
+                        '$final_balance'
+                    )";
+
+            if (($conn->query($sql1) === TRUE)) {
+                $err_no = 0;
+            }
+        }
+
+        // For Debit transactions
+        if ($type == "debit") {
+            $final_balance = $balance - $amt;
+
+            if ($final_balance >= 0) {
+                $sql1 = "INSERT INTO passbook".$id." VALUES(
+                            NULL,
+                            NOW(),
+                            'Cash to Self',
+                            '$amt',
+                            '0',
+                            '$final_balance'
+                        )";
+
+                if (($conn->query($sql1) === TRUE)) {
+                    $err_no = 0;
+                }
+            }
+            else {
+                $err_no = 1;
+            }
+        }
+    }
+    else {
+        $err_no = 2;
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="action_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <?php
+            if ($err_no == -1) { ?>
+                <p id="info"><?php echo "Connection Error ! Please try again later.\n"; ?></p>
+            <?php } ?>
+
+            <?php
+            if ($err_no == 0) { ?>
+                <p id="info"><?php echo "Transaction Successful !\n"; ?></p>
+            <?php } ?>
+
+            <?php
+            if ($err_no == 1) { ?>
+                <p id="info"><?php echo "Insufficient Funds !\n"; ?></p>
+            <?php } ?>
+
+            <?php
+            if ($err_no == 2) { ?>
+                <p id="info"><?php echo "Wrong PIN Entered !\n"; ?></p>
+            <?php } ?>
+        </div>
+
+        <div class="flex-item">
+            <a href="/atm_simulator.php" class="button">Go Back</a>
+        </div>
+    </div>
+
+</body>
+</html>
+ 51  net-banking/auto_delete_beneficiary.php 
+@@ -0,0 +1,51 @@
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_customer.php";
+    include "connect.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+
+    $_SESSION['auto_delete_benef'] = false;
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="action_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <p id="info" style="font-size:36px;">
+                <b>One or more of your beneficiaries have been deleted ! :(</b><br>
+            </p>
+        </div>
+
+        <div class="flex-item">
+            <p id="info" style="margin-top:-40px;">
+                <br>For security reasons if sensitive details of your beneficiary like
+                Phone No, Account No, Email-ID, etc have been changed <b>OR</b> if the
+                beneficiary no longer exists, they get deleted from your list of
+                beneficiaries automatically.<br><br>
+                Please add beneficiary details again. :)
+            </p>
+        </div>
+        <?php $conn->close(); ?>
+
+        <div class="flex-item">
+            <a href="/beneficiary.php" class="button">Go to Transfer Funds</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
+ 220  net-banking/beneficiary.php 
+@@ -0,0 +1,220 @@
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_customer.php";
+    include "connect.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "verify_beneficiary.php";
+    include "session_timeout.php";
+
+    if (isset($_SESSION['loggedIn_cust_id'])) {
+        $sql0 = "SELECT * FROM beneficiary".$_SESSION['loggedIn_cust_id'];
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="manage_customers_style.css">
+</head>
+
+<body>
+    <div class="search-bar-wrapper">
+        <div class="search-bar" id="the-search-bar">
+            <div class="flex-item-search-bar" id="fi-search-bar">
+                <a class="add-button" href="/add_beneficiary.php">Add</a>
+
+                <form class="search_form" action="" method="post">
+                    <div class="flex-item-search">
+                        <input name="search" size="30" type="text" placeholder="Search Beneficiaries..." />
+                    </div>
+
+                    <div class="flex-item-search-button">
+                        <button type="submit" name="submit" id="search"></button>
+                    </div>
+
+                    <div class="flex-item-by">
+                        <label for="by">By :</label>
+                    </div>
+
+                    <div class="flex-item-search-by">
+                        <select name="by" id="by">
+                            <option value="name">Name</option>
+                            <option value="acno">Ac/No</option>
+                        </select>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-container">
+        <p id="info">Send to, Add/Delete Beneficiaries.</p>
+        <?php
+            $result = $conn->query($sql0);
+            $isBenefPresent = 0;
+            $back_button = FALSE;
+
+            if ($result->num_rows > 0) {
+            // output data of each row
+            $i = 0;
+            while($row = $result->fetch_assoc()) {
+                $i++;
+
+                if (isset($_POST['submit'])) {
+                    $back_button = TRUE;
+                    $search = $_POST['search'];
+                    $by = $_POST['by'];
+
+                    if ($by == "name") {
+                        $sql1 = "SELECT cust_id, first_name, last_name, account_no FROM customer
+                        WHERE cust_id=".$row["benef_cust_id"]." AND (first_name LIKE '%$search%'
+                        OR last_name LIKE '%$search%' OR CONCAT(first_name, ' ', last_name) LIKE '%$search%')";
+                    }
+                    else {
+                        $sql1 = "SELECT cust_id, first_name, last_name, account_no FROM customer
+                        WHERE cust_id=".$row["benef_cust_id"]." AND account_no LIKE '$search'";
+                    }
+                }
+                else {
+                    $sql1 = "SELECT cust_id, first_name, last_name, account_no
+                             FROM customer WHERE cust_id=".$row["benef_cust_id"];
+                }
+
+                $result1 = $conn->query($sql1);
+                if ($result1->num_rows > 0) {
+                    $isBenefPresent = 1;
+                    $row1 = $result1->fetch_assoc();
+                ?>
+
+                    <div class="flex-item">
+                        <div class="flex-item-1">
+                            <p id="id"><?php echo $i . "."; ?></p>
+                        </div>
+                        <div class="flex-item-2">
+                            <p id="name"><?php echo $row1["first_name"] . " " . $row1["last_name"]; ?></p>
+                            <p id="acno"><?php echo "Ac/No : " . $row1["account_no"]; ?></p>
+                        </div>
+                        <div class="flex-item-1">
+                            <div class="dropdown">
+                                <!--We are dynamically naming each dropdown for every entry in the loop and
+                                    passing the respective integer value in the dropdown_func().
+                                    This creates adynamic anchor for each button-->
+                              <button onclick="dropdown_func(<?php echo $i ?>)" class="dropbtn"></button>
+                              <div id="dropdown<?php echo $i ?>" class="dropdown-content">
+                                <!--Pass the customer trans_id as a get variable in the link-->
+                                <a href="/send_funds.php?cust_id=<?php echo $row1["cust_id"] ?>">Send</a>
+                                <a href="/delete_beneficiary.php?cust_id=<?php echo $row1["cust_id"] ?>"
+                                     onclick="return confirm('Are you sure?')">Delete</a>
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+
+            <?php }}}
+
+            if ($isBenefPresent == 0) { ?>
+                <p id="none"> No beneficiaries found :(</p>
+            <?php }
+            if ($back_button) { ?>
+                <div class="flex-container-bb">
+                    <div class="back_button">
+                        <a href="/beneficiary.php" class="button">Go Back</a>
+                    </div>
+                </div>
+            <?php }
+            $conn->close(); ?>
+    </div>
+
+    <script>
+    /*  The problem with lots of menus sharing same anchor(dropdown-content) is that clicking on
+        any of the buttons produces the same output as clicking the first button. Thus only the
+        menu associated with the first button opens. This is BIG PROBLEM when we have lots of menus
+        inside the while-loop.
+        Hence, solve this problem using dynamic naming to create different anchors for different
+        buttons.
+        This is a proper solution and NOT a hack/workaround */
+    function dropdown_func(i) {
+        // Dynamic naming of the dropdown #id
+        var doc_id = "dropdown".concat(i.toString());
+
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        var i;
+
+        // Close any menus, if opened, before opening a new one
+        for (i = 0; i < dropdowns.length; i++) {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+              openDropdown.classList.remove('show');
+            }
+        }
+
+        document.getElementById(doc_id).classList.toggle("show");
+        return false;
+    }
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+      if (!event.target.matches('.dropbtn')) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        var i;
+
+        for (i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    }
+
+    // Sticky search-bar
+    $(document).ready(function() {
+        var curr_scroll;
+
+        $(window).scroll(function () {
+            curr_scroll = $(window).scrollTop();
+
+            if ($(window).scrollTop() > 120) {
+                $("#the-search-bar").addClass('search-bar-fixed');
+
+              if ($(window).width() > 855) {
+                  $("#fi-search-bar").addClass('fi-search-bar-fixed');
+              }
+            }
+
+            if ($(window).scrollTop() < 121) {
+                $("#the-search-bar").removeClass('search-bar-fixed');
+
+              if ($(window).width() > 855) {
+                  $("#fi-search-bar").removeClass('fi-search-bar-fixed');
+              }
+            }
+        });
+
+        // Fixes some 'unfortunate-graphics-derp' while resizing the window
+        $(window).resize(function () {
+            var class_name = $("#fi-search-bar").attr('class');
+
+            if ((class_name == "flex-item-search-bar fi-search-bar-fixed") && ($(window).width() < 856)) {
+                $("#fi-search-bar").removeClass('fi-search-bar-fixed');
+            }
+
+            if ((class_name == "flex-item-search-bar") && ($(window).width() > 855) && (curr_scroll > 120)) {
+                $("#fi-search-bar").addClass('fi-search-bar-fixed');
+            }
+        });
+    });
+
+    </script>
+
+</body>
+</html>
+ 17  net-banking/connect.php 
+@@ -0,0 +1,17 @@
+<?php
+$servername = "localhost";
+// Enter your MySQL username below(default=root)
+$username = "<put your username here>";
+// Enter your MySQL password below
+$password = "<put your password here>";
+$dbname = "net_banking";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    header("location:connection_error.php?error=$conn->connect_error");
+    die($conn->connect_error);
+}
+?>
+ 41  net-banking/connection_error.php 
+@@ -0,0 +1,41 @@
+<?php
+    include "header.php";
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="session_expired_style.css">
+</head>
+
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <img id="session" src="/images/error.png">
+        </div>
+        <div class="flex-item-message">
+            <h1 id="session-sub">Uh-Oh !</h1>
+            <p id="session-sub">
+                We have error connecting to database !<br>
+            </p>
+            <p id="session">
+                <b>Error Message: </b>
+                <?php
+                    if (isset($_GET['error'])) {
+                        echo $_GET['error'];
+                    }
+                ?><br><br>
+                Make sure that the database login credentials are correct
+                and/or the server is set up properly/responding.<br><br>
+                Please try again after sometime. :)
+            </p>
+        </div>
+        <div class="flex-item">
+            <a href="/home.php" class="button">Go Home</a>
+        </div>
+    </div>
+
+</body>
+</html>
+ 65  net-banking/contact.php 
+@@ -0,0 +1,65 @@
+<?php
+    include "header.php";
+    include "navbar.php";
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="contact_style.css">
+</head>
+
+<body>
+    <div class="flex-container-background">
+        <div class="flex-container-heading">
+            <h1 id="contact">Contact Us</h1>
+        </div>
+
+        <div class="flex-container" style="border-bottom: 0;
+                                           border-top-left-radius: 10px;
+                                           border-top-right-radius: 10px;">
+            <div class="flex-item">
+                <h1 id="sub-contact">Corporate Headquarters</h1>
+                <p id="sub-contact">
+                    Corporate HQ<br>Dolphin Bank<br>
+                    1985 Cedar Bridge Ave, Suite 3<br>
+                    Lakewood, NY 08701
+                </p>
+            </div>
+            <div class="flex-item">
+                <h1 id="sub-contact">General Contact</h1>
+                <p id="sub-contact">
+                    Toll-Free: 888-968-6822<br>
+                    Phone: 732-367-5505<br>
+                    Fax: 732-367-2313<br>
+                    Email: office@&#8203dolphinbank.com
+                </p>
+            </div>
+        </div>
+
+        <div class="flex-container" style="border-top: 0;
+                                           border-bottom-left-radius: 10px;
+                                           border-bottom-right-radius: 10px;">
+            <div class="flex-item">
+                <h1 id="sub-contact">Customer Care (24x7)</h1>
+                <p id="sub-contact">
+                    Toll-Free: 888-966-6992<br>
+                    Phone: 732-666-5555<br>
+                    Email: care@&#8203dolphinbank.com
+                </p>
+            </div>
+            <div class="flex-item">
+                <h1 id="sub-contact">Live Chat</h1>
+                <p id="sub-contact">
+                    Download our app and live chat<br>
+                    with our customer care !<br>
+                    App available on Google Play<br>
+                    and iPhone-AppStore.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+ 88  net-banking/contact_style.css 
+@@ -0,0 +1,88 @@
+body, html {
+    height: 100%;
+    background: url("images/contact_us.jpg") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.flex-container-background {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    overflow: auto;
+    width: auto;
+}
+
+.flex-container-heading {
+    display: -webkit-flex;
+    display: flex;
+    width: auto;
+    height: auto;
+    background: linear-gradient(rgba(0, 0, 0, .6), rgba(0, 0, 0, 0));
+}
+
+.flex-container {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    width: auto;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+    background: rgba(0, 0, 0, .3);
+    border: 2px solid #f1f1f1;
+}
+
+.flex-item {
+    width: 500px;
+    height: 200px;
+    margin: 10px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media screen and (max-width: 500px) {
+    .flex-item {
+        width: auto;
+        height: auto;
+    }
+}
+
+h1[id="contact"] {
+    line-height: normal;
+    font-family: Roboto-Thin;
+    font-size: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    color: white;
+}
+
+h1[id="sub-contact"] {
+    margin-top: 0px;
+    margin-left: 10px;
+    font-size: 30px;
+    font-family: Roboto-Regular;
+    color: white;
+    line-height: normal;
+}
+
+p[id="sub-contact"] {
+    margin-top: -10px;
+    margin-left: 10px;
+    font-size: 24px;
+    font-family: Roboto-Regular;
+    color: white;
+    line-height: normal;
+}
+
+@media screen and (max-width: 1000px) {
+    h1[id="sub-contact"] {
+        text-align: center;
+    }
+
+    p[id="sub-contact"] {
+        text-align: center;
+    }
+}
+ 148  net-banking/customer_add.php 
+@@ -0,0 +1,148 @@
+<?php
+    include "validate_admin.php";
+    include "header.php";
+    include "user_navbar.php";
+    include "admin_sidebar.php";
+    include "session_timeout.php";
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="customer_add_style.css">
+</head>
+
+<body>
+    <form class="add_customer_form" action="customer_add_action.php" method="post">
+        <div class="flex-container-form_header">
+            <h1 id="form_header">Please fill in the following details . . .</h1>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>First Name :</label><br>
+                <input name="fname" size="30" type="text" required />
+            </div>
+            <div  class=container>
+                <label>Last Name :</b></label><br>
+                <input name="lname" size="30" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Gender :</label>
+            </div>
+            <div class="flex-container-radio">
+                <div class="container">
+                    <input type="radio" name="gender" value="male" id="male-radio" checked>
+                    <label id="radio-label" for="male-radio"><span class="radio">Male</span></label>
+                </div>
+                <div class="container">
+                    <input type="radio" name="gender" value="female" id="female-radio">
+                    <label id="radio-label" for="female-radio"><span class="radio">Female</span></label>
+                </div>
+                <div class="container">
+                    <input type="radio" name="gender" value="others" id="other-radio">
+                    <label id="radio-label" for="other-radio"><span class="radio">Others</span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Date of Birth :</label><br>
+                <input name="dob" size="30" type="text" placeholder="yyyy-mm-dd" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Aadhar No :</label><br>
+                <input name="aadhar" size="25" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Email-ID :</label><br>
+                <input name="email" size="30" type="text" required />
+            </div>
+            <div  class=container>
+                <label>Phone No. :</b></label><br>
+                <input name="phno" size="30" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Address :</label><br>
+                <textarea name="address" required /></textarea>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Bank Branch :</label>
+            </div>
+            <div  class=container>
+                <select name="branch">
+                    <option value="delhi">Delhi</option>
+                    <option value="newyork">New York</option>
+                    <option value="paris">Paris</option>
+                    <option value="riyadh">Riyadh</option>
+                    <option value="moscow">Moscow</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Account No :</label><br>
+                <input name="acno" size="25" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Opening Balance :</label><br>
+                <input name="o_balance" size="20" type="text" required />
+            </div>
+            <div  class=container>
+                <label>PIN(4 digit) :</b></label><br>
+                <input name="pin" size="15" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Username :</label><br>
+                <input name="cus_uname" size="30" type="text" required />
+            </div>
+            <div  class=container>
+                <label>Password :</b></label><br>
+                <input name="cus_pwd" size="30" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class="container">
+                <button type="submit">Submit</button>
+            </div>
+
+            <div class="container">
+                <button type="reset" class="reset" onclick="return confirmReset();">Reset</button>
+            </div>
+        </div>
+
+    </form>
+
+    <script>
+    function confirmReset() {
+        return confirm('Do you really want to reset?')
+    }
+    </script>
+
+</body>
+</html>
+ 150  net-banking/customer_add_action.php 
+@@ -0,0 +1,150 @@
+<?php
+    include "validate_admin.php";
+    include "connect.php";
+    include "header.php";
+    include "user_navbar.php";
+    include "admin_sidebar.php";
+    include "session_timeout.php";
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="action_style.css">
+</head>
+
+<?php
+$fname = mysqli_real_escape_string($conn, $_POST["fname"]);
+$lname = mysqli_real_escape_string($conn, $_POST["lname"]);
+$gender = mysqli_real_escape_string($conn, $_POST["gender"]);
+$dob = mysqli_real_escape_string($conn, $_POST["dob"]);
+$aadhar = mysqli_real_escape_string($conn, $_POST["aadhar"]);
+$email = mysqli_real_escape_string($conn, $_POST["email"]);
+$phno = mysqli_real_escape_string($conn, $_POST["phno"]);
+$address = mysqli_real_escape_string($conn, $_POST["address"]);
+$branch = mysqli_real_escape_string($conn, $_POST["branch"]);
+$acno = mysqli_real_escape_string($conn, $_POST["acno"]);
+$o_balance = mysqli_real_escape_string($conn, $_POST["o_balance"]);
+$pin = mysqli_real_escape_string($conn, $_POST["pin"]);
+$cus_uname = mysqli_real_escape_string($conn, $_POST["cus_uname"]);
+$cus_pwd = mysqli_real_escape_string($conn, $_POST["cus_pwd"]);
+
+$sql0 = "SELECT MAX(cust_id) FROM customer";
+$result = $conn->query($sql0);
+$row = $result->fetch_assoc();
+$id = $row["MAX(cust_id)"] + 1;
+
+/*  Prevent mismatch between cust_id and benef/passbook table number.
+    This is because when a row is deleted from customer AUTO_INCREMENT does
+    not reset but keeps increasing.
+    Hence resest AUTO_INCREMENT to $id and eleminate the error. */
+$sql5 = "ALTER TABLE customer AUTO_INCREMENT=".$id;
+$conn->query($sql5);
+
+$sql1 = "CREATE TABLE passbook".$id."(
+            trans_id INT NOT NULL AUTO_INCREMENT,
+            trans_date DATETIME,
+            remarks VARCHAR(255),
+            debit INT,
+            credit INT,
+            balance INT,
+            PRIMARY KEY(trans_id)
+        )";
+
+$sql2 = "CREATE TABLE beneficiary".$id."(
+            benef_id INT NOT NULL AUTO_INCREMENT,
+            benef_cust_id INT UNIQUE,
+            email VARCHAR(30) UNIQUE,
+            phone_no VARCHAR(20) UNIQUE,
+            account_no INT UNIQUE,
+            PRIMARY KEY(benef_id)
+        )";
+
+$sql3 = "INSERT INTO customer VALUES(
+            NULL,
+            '$fname',
+            '$lname',
+            '$gender',
+            '$dob',
+            '$aadhar',
+            '$email',
+            '$phno',
+            '$address',
+            '$branch',
+            '$acno',
+            '$pin',
+            '$cus_uname',
+            '$cus_pwd'
+        )";
+
+$sql4 = "INSERT INTO passbook".$id." VALUES(
+            NULL,
+            NOW(),
+            'Opening Balance',
+            '0',
+            '$o_balance',
+            '$o_balance'
+        )";
+
+?>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <?php
+            if (($conn->query($sql3) === TRUE)) { ?>
+                <p id="info"><?php echo "Customer created successfully !\n"; ?></p>
+        </div>
+
+        <div class="flex-item">
+            <?php
+            if (($conn->query($sql1) === TRUE)) { ?>
+                <p id="info"><?php echo "Passbook created successfully !\n"; ?></p>
+            <?php
+            } else { ?>
+                <p id="info"><?php
+                echo "Error: " . $sql1 . "<br>" . $conn->error . "<br>"; ?></p>
+            <?php } ?>
+        </div>
+
+        <div class="flex-item">
+            <?php
+            if (($conn->query($sql4) === TRUE)) { ?>
+                <p id="info"><?php echo "Passbook updated successfully !\n"; ?></p>
+            <?php
+            } else { ?>
+                <p id="info"><?php
+                echo "Error: " . $sql4 . "<br>" . $conn->error . "<br>"; ?></p>
+            <?php } ?>
+        </div>
+
+        <div class="flex-item">
+            <?php
+            if (($conn->query($sql2) === TRUE)) { ?>
+                <p id="info"><?php echo "Beneficiary created successfully !\n"; ?></p>
+            <?php
+            } else { ?>
+                <p id="info"><?php
+                echo "Error: " . $sql2 . "<br>" . $conn->error . "<br>"; ?></p>
+            <?php } ?>
+        </div>
+
+            <?php
+            } else { ?>
+        </div>
+        <div class="flex-item">
+                <p id="info"><?php
+                echo "Error: " . $sql3 . "<br>" . $conn->error . "<br>"; ?></p>
+            <?php } ?>
+        </div>
+        <?php $conn->close(); ?>
+
+        <div class="flex-item">
+            <a href="/customer_add.php" class="button">Add Again</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
+ 214  net-banking/customer_add_style.css 
+@@ -0,0 +1,214 @@
+.flex-container {
+    display: -webkit-flex;
+    display: flex;
+    margin-left: 256px;
+    width: auto;
+    height: auto;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    background-color: #FAFAFA;
+}
+
+.flex-container-form_header {
+    display: -webkit-flex;
+    display: flex;
+    margin-left: 256px;
+    width: auto;
+    height: auto;
+    background-color: #FAFAFA;
+    border-bottom: 3px solid #263238;
+}
+
+h1[id="form_header"] {
+    margin-left: 20px;
+    font-family: Roboto-Thin;
+    color: #263238;
+}
+
+.flex-container-radio {
+    display: -webkit-flex;
+    display: flex;
+    width: auto;
+    height: auto;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    background-color: #FAFAFA;
+}
+
+@media screen and (max-width: 855px) {
+    .flex-container, .flex-container-form_header {
+        margin-left: auto;
+    }
+}
+
+/* Bordered form */
+form {
+    border: 3px solid white;
+    width: inherit;
+    margin-left: 0px;
+}
+
+label {
+    display: block;
+    float: left;
+    color: #212121;
+    font-family: OpenSans-Bold;
+    font-size: 20px;
+}
+
+label[id="info_label"] {
+    display: block;
+    float: right;
+    margin-left: 6px;
+    font-family: Roboto-Regular;
+    color: #212121;
+    font-size: 24px;
+}
+
+/* Full-width inputs */
+input[type=text], input[type=password] {
+    font-family: Roboto-Regular;
+    color: #212121;
+    font-size: 24px;
+    width: auto;
+    margin: 8px 0;
+    padding: 1px 1px;
+    border: 0;
+    border-bottom: 1px solid #212121;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+
+@media screen and (max-width: 480px) {
+    input[type=text], input[type=password] {
+        width: 300px;
+    }
+
+    label[id="info_label"] {
+        display: block;
+        float:none;
+    }
+}
+
+@media screen and (max-width: 350px) {
+    input[type=text], input[type=password] {
+        width: 240px;
+    }
+}
+
+.container {
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    float: left;
+    display: inline-block;
+}
+
+input[type=radio] {
+    display: none;
+    background-color: white;
+    float: left;
+    padding: 1px 1px;
+}
+
+label[id="radio-label"] {
+	background: url("images/radio_button_unchecked.png") left top no-repeat;
+	display: block;
+	min-height: 25px;
+	padding-left: 35px;
+}
+
+input[type=radio]:checked + label {
+	background: url("images/radio_button_checked.png") left top no-repeat;
+}
+
+textarea {
+    font-family: Roboto-Regular;
+    color: #212121;
+    font-size: 24px;
+    height: 100px;
+    width:35vw;
+    max-width: 720px;
+    min-width: 240px;
+    margin: 8px 0;
+    padding: 1px 1px;
+    border: 0;
+    border: 1px solid #212121;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+
+select {
+    font-family: Roboto-Regular;
+    color: #212121;
+    font-size: 20px;
+    background: url("images/down_arrow.png") 96% / 15% no-repeat #eee;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: transparent;
+    width: 130%;
+    padding: 4px 0;
+    border: none;
+    border-bottom: 1px solid #212121;
+}
+
+/* Set a style for all buttons */
+button {
+    font-family: OpenSans-Regular;
+    font-size: 18px;
+    background-color: #00BCD4;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 3px;
+}
+
+.button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    font-family: OpenSans-Regular;
+    font-size: 18px;
+    padding: 14px 20px;
+    margin: 8px 0;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.password-button {
+    background-color: transparent;
+    color: #d50000;
+    font-family: OpenSans-Regular;
+    font-size: 18px;
+    padding: 14px 20px;
+    margin: 8px 0;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 3px;
+    border: 2px solid #d50000;
+    cursor: pointer;
+}
+
+.password-button:hover {
+    background-color: #d32f2f;
+    color: white;
+    border: 2px solid #d32f2f;
+}
+
+/* Add a hover effect for buttons */
+button:hover, .button:hover {
+    opacity: 0.8;
+}
+
+/* Extra style for the cancel button (red) */
+.reset {
+    width: auto;
+    background-color: #f44336;
+}
+ 63  net-banking/customer_home.php 
+@@ -0,0 +1,63 @@
+<?php
+    include "validate_customer.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+
+    $id = $_SESSION['loggedIn_cust_id'];
+
+    $sql0 = "SELECT * FROM customer WHERE cust_id=".$id;
+    $result0 = $conn->query($sql0);
+    $row0 = $result0->fetch_assoc();
+
+    $sql1 = "SELECT * FROM passbook".$id." WHERE trans_id=(
+                    SELECT MAX(trans_id) FROM passbook".$id.")";
+    $result1 = $conn->query($sql1);
+    $row1 = $result1->fetch_assoc();
+
+    if ($row1["debit"] == 0) {
+        $transaction = $row1["credit"];
+        $type = "credit";
+    }
+    else {
+        $transaction = $row1["debit"];
+        $type = "debit";
+    }
+
+    $time = strtotime($row1["trans_date"]);
+    $sanitized_time = date("d/m/Y, g:i A", $time);
+
+    $sql2 = "SELECT COUNT(*) FROM beneficiary".$id;
+    $result2 = $conn->query($sql2);
+    $row2 = $result2->fetch_assoc();
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="admin_home_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <h1 id="customer">
+                Welcome, <?php echo $row0["first_name"] ?>&nbsp<?php echo $row0["last_name"] ?>&nbsp!
+                <br>AC/No: <?php echo $row0["account_no"]; ?>
+            </h1>
+            <p id="customer">
+                &#9656 Balance (INR): <?php echo number_format($row1["balance"]); ?>/-
+                <br>&#9656 You have <?php echo $row2["COUNT(*)"]; ?> beneficiaries.
+                <br>&#9656 Your last transaction (<?php echo $type; ?>) of&nbspRs.&nbsp<?php
+                echo number_format($transaction); ?><br>
+                on <?php echo $sanitized_time; ?>, was: "<?php echo $row1["remarks"]; ?>".
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<?php include "easter_egg.php"; ?>
+ 27  net-banking/customer_login_action.php 
+@@ -0,0 +1,27 @@
+<?php
+    include "connect.php";
+
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    $uname = mysqli_real_escape_string($conn, $_POST["cust_uname"]);
+    $pwd = mysqli_real_escape_string($conn, $_POST["cust_psw"]);
+
+    $sql0 =  "SELECT * FROM customer WHERE uname='".$uname."' AND pwd='".$pwd."'";
+    $result = $conn->query($sql0);
+    $row = $result->fetch_assoc();
+
+    if (($result->num_rows) > 0) {
+        $_SESSION['loggedIn_cust_id'] = $row["cust_id"];
+        $_SESSION['isCustValid'] = true;
+        $_SESSION['LAST_ACTIVITY'] = time();
+        header("location:customer_home.php");
+    }
+    else {
+        session_destroy();
+        die(header("location:home.php?loginFailed=true"));
+    }
+?>
+ 52  net-banking/customer_navbar.php 
+@@ -0,0 +1,52 @@
+<?php
+    include "connect.php";
+
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    if (isset($_SESSION['loggedIn_cust_id'])) {
+        $sql0 = "SELECT * FROM customer WHERE cust_id=".$_SESSION['loggedIn_cust_id'];
+        $result = $conn->query($sql0);
+        $row = $result->fetch_assoc();
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="user_navbar_style.css">
+    <script src="jquery-3.2.1.min.js"></script>
+</head>
+
+<body>
+    <div class="nav-wrapper">
+        <div class="topnav" id="theTopNav">
+            <a href="javascript:void(0);" class="icon" onclick="openNav()" id="hamburger">
+                &#9776;
+            </a>
+            <a id="user">Welcome, &nbsp<?php echo $row["first_name"]; ?> !</a>
+            <a id="logout" href="/logout_action.php" onclick="return confirm('Are you sure?')">Logout</a>
+            <a id="profile" href="/customer_profile.php">My Profile</a>
+        </div>
+    </div>
+
+<script>
+// Function below is jquery-3 function used for making the navbar sticky
+$(document).ready(function() {
+  $(window).scroll(function () {
+    if ($(window).scrollTop() > 120) {
+      $("#theTopNav").addClass('navbar-fixed');
+    }
+    if ($(window).scrollTop() < 121) {
+      $("#theTopNav").removeClass('navbar-fixed');
+  }
+  });
+});
+</script>
+
+</body>
+</html>
+ 166  net-banking/customer_profile.php 
+@@ -0,0 +1,166 @@
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_customer.php";
+    include "connect.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+
+    $id = $_SESSION['loggedIn_cust_id'];
+
+    $sql0 = "SELECT * FROM customer WHERE cust_id=".$id;
+    $sql1 = "SELECT * FROM passbook".$id." WHERE trans_id=(
+                    SELECT MAX(trans_id) FROM passbook".$id.")";
+
+    $result0 = $conn->query($sql0);
+    $result1 = $conn->query($sql1);
+
+    if ($result0->num_rows > 0) {
+        // output data of each row
+        while($row = $result0->fetch_assoc()) {
+            $fname = $row["first_name"];
+            $lname = $row["last_name"];
+            $gender = $row["gender"];
+            $dob = $row["dob"];
+            $aadhar = $row["aadhar_no"];
+            $email = $row["email"];
+            $phno = $row["phone_no"];
+            $address = $row["address"];
+            $branch = $row["branch"];
+            $acno = $row["account_no"];
+            $pin = $row["pin"];
+            $cus_uname = $row["uname"];
+            $cus_pwd = $row["pwd"];
+        }
+    }
+
+    if ($result1->num_rows > 0) {
+        // output data of each row
+        while($row = $result1->fetch_assoc()) {
+            $balance = $row["balance"];
+        }
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="customer_add_style.css">
+</head>
+
+<body>
+    <form class="add_customer_form" action="customer_profile_action.php" method="post">
+        <div class="flex-container-form_header">
+            <h1 id="form_header">Your account details . . .</h1>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>First Name : <label id="info_label"><?php echo $fname ?></label></label>
+            </div>
+            <div class=container>
+                <label>Last Name : <label id="info_label"><?php echo $lname ?></label></label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Account No : <label id="info_label"><?php echo $acno ?></label></label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Balance (INR) : <label id="info_label"><?php echo number_format($balance) ?></label></label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Gender :
+                    <label id="info_label">
+                    <?php
+                        if ($gender == "male") {echo "Male";}
+                        elseif ($gender == "female") {echo "Female";}
+                        else {echo "Others";}
+                    ?>
+                    <label>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Date of Birth : <label id="info_label"><?php echo $dob ?></label></label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Aadhar No : <label id="info_label"><?php echo $aadhar ?></label></label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Email-ID :</label><br>
+                <input name="email" size="30" type="text" value="<?php echo $email ?>" required />
+            </div>
+            <div class=container>
+                <label>Username :</label><br>
+                <input name="cus_uname" size="30" type="text" value="<?php echo $cus_uname ?>" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div  class=container>
+                <label>Phone No. : <label id="info_label"><?php echo $phno ?></label></label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Address :</label><br>
+                <textarea name="address" required /><?php echo $address ?></textarea>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Bank Branch :
+                    <label id="info_label">
+                        <?php
+                            if ($branch == "delhi") {echo "Delhi";}
+                            elseif ($branch == "newyork") {echo "New York";}
+                            elseif ($branch == "paris") {echo "Paris";}
+                            elseif ($branch == "riyadh") {echo "Riyadh";}
+                            elseif ($branch == "moscow") {echo "Moscow";}
+                        ?>
+                    </label>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class="container">
+                <a href="/customer_home.php" class="button">Home</a>
+            </div>
+            <div class="container">
+                <button type="submit">Update</button>
+            </div>
+            <div class="container">
+                <a href="/pass_change.php" class="password-button">Change Password/PIN</a>
+            </div>
+        </div>
+
+    </form>
+
+</body>
+</html>
+ 55  net-banking/customer_profile_action.php 
+@@ -0,0 +1,55 @@
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_customer.php";
+    include "connect.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+
+    $email = mysqli_real_escape_string($conn, $_POST["email"]);
+    $address = mysqli_real_escape_string($conn, $_POST["address"]);
+    $cus_uname = mysqli_real_escape_string($conn, $_POST["cus_uname"]);
+
+    $sql0 = "UPDATE customer SET email = '$email',
+                                 address = '$address',
+                                 uname = '$cus_uname'
+                            WHERE cust_id=".$_SESSION['loggedIn_cust_id'];;
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="action_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <?php
+                if (($conn->query($sql0) === TRUE)) { ?>
+                    <p id="info"><?php echo "Values Updated Successfully !"; ?></p>
+                <?php
+                }
+                else { ?>
+                    <p id="info"><?php echo "Error: " . $sql0 . "<br>" . $conn->error . "<br>"; ?></p>
+                <?php
+                }
+            ?>
+        </div>
+        <?php $conn->close(); ?>
+
+        <div class="flex-item">
+            <a href="/customer_home.php" class="button">Home</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
+ 83  net-banking/customer_sidebar.php 
+@@ -0,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="admin_sidebar_style.css">
+</head>
+<body>
+    <div class="sidenav" id="theSideNav">
+        <a href="javascript:void(0)" id="closebtn" style="padding: 10px 20px;"
+                        onclick="closeNav()">&times;</a>
+        <a href="/customer_home.php">Home</a>
+        <a href="/customer_transactions.php">My Transactions</a>
+        <a id="label">Send/Recieve</a>
+        <a href="/beneficiary.php">Transfer Funds</a>
+        <a href="/atm_simulator.php">ATM Simulator</a>
+        <a id="label">Contact Us</a>
+        <a href="#">Submit Griveance</a>
+    </div>
+<script>
+// For-Loop below is used to create active links and accordingly color them.
+// Helps in recognizing which tab is selected.
+for (var i = 0; i < document.links.length; i++) {
+    if (document.URL.indexOf('?') > 0) {
+        sanitizedURL = document.URL.substring(0, document.URL.indexOf('?'));
+    }
+    else {
+        sanitizedURL = document.URL;
+    }
+    if (document.links[i].href == sanitizedURL) {
+        document.links[i].className = 'active';
+    }
+}
+function openNav() {
+    document.getElementById("theSideNav").style.width = "256px";
+    var x = document.getElementById("theSideNav");
+    if (x.className === "sidenav sidenav-fixed") {
+        x.className += " responsive";
+    }
+}
+// Never use get window size of jquery, in javascript, they dont work !
+function closeNav() {
+    if (document.documentElement.clientWidth < 856) {
+        document.getElementById("theSideNav").style.width = "0";
+    }
+}
+$(document).ready(function() {
+    $(window).resize(function () {
+        if ($(window).width() > 855)
+            document.getElementById("theSideNav").style.width = "256px";
+        if (($(window).width()) < 856){
+            $('#closebtn').trigger('click');
+        }
+    });
+});
+// Function below is jquery-3 function used for making the navbar sticky
+$(document).ready(function() {
+    $(window).scroll(function () {
+        var x1 = document.getElementById("theSideNav").style.width;
+        if ($(window).scrollTop() > 120) {
+          $("#theSideNav").addClass('sidenav-fixed');
+            if (($(window).width()) < 856 && x1 == "256px") {
+                $('#hamburger').trigger('click');
+            }
+        }
+        if ($(window).scrollTop() < 121) {
+          $("#theSideNav").removeClass('sidenav-fixed');
+        }
+    });
+});
+</script>
+</body>
+</html>
+ 255  net-banking/customer_transactions.php 
+@@ -0,0 +1,255 @@
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_customer.php";
+    include "connect.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+
+    if (isset($_SESSION['loggedIn_cust_id'])) {
+        $sql0 = "SELECT * FROM passbook".$_SESSION['loggedIn_cust_id'];
+    }
+
+    // Recive sort variables as $_GET
+    if (isset($_GET['sort'])) {
+        $sort = $_GET['sort'];
+    }
+
+    // Recieve filter variables as session variables
+    if (isset($_POST['search_term'])) {
+        $_SESSION['search_term'] = $_POST['search_term'];
+    }
+    if (isset($_POST['date_from'])) {
+        $_SESSION['date_from'] = $_POST['date_from'];
+    }
+    if (isset($_POST['date_to'])) {
+        $_SESSION['date_to'] = $_POST['date_to'];
+    }
+
+    // Filter indicator variable
+    $filter_indicator = "None";
+
+    // Queries when search is set
+    if (!empty($_SESSION['search_term'])) {
+        $sql0 .= " WHERE remarks COLLATE latin1_GENERAL_CI LIKE '%".$_SESSION['search_term']."%'";
+        $filter_indicator = "Remarks";
+
+        if (!empty($_SESSION['date_from']) && empty($_SESSION['date_to'])) {
+            $sql0 .= " AND trans_date > '".$_SESSION['date_from']." 00:00:00'";
+            $filter_indicator = "Remarks & Date From";
+        }
+        if (empty($_SESSION['date_from']) && !empty($_SESSION['date_to'])) {
+            $sql0 .= " AND trans_date < '".$_SESSION['date_to']." 23:59:59'";
+            $filter_indicator = "Remarks & Date To";
+        }
+        if (!empty($_SESSION['date_from']) && !empty($_SESSION['date_to'])) {
+            $sql0 .=  " AND trans_date BETWEEN '".$_SESSION['date_from']." 00:00:00' AND '".$_SESSION['date_to']." 23:59:59'";
+            $filter_indicator = "Remarks, Date From & Date To";
+        }
+    }
+
+    // Queries when search is not set
+    if (empty($_SESSION['search_term'])) {
+        if (!empty($_SESSION['date_from']) && empty($_SESSION['date_to'])) {
+            $sql0 .= " WHERE trans_date > '".$_SESSION['date_from']." 00:00:00'";
+            $filter_indicator = "Date From";
+        }
+        if (empty($_SESSION['date_from']) && !empty($_SESSION['date_to'])) {
+            $sql0 .= " WHERE trans_date < '".$_SESSION['date_to']." 23:59:59'";
+            $filter_indicator = "Date To";
+        }
+        if (!empty($_SESSION['date_from']) && !empty($_SESSION['date_to'])) {
+            $sql0 .=  " WHERE trans_date BETWEEN '".$_SESSION['date_from']." 00:00:00' AND '".$_SESSION['date_to']." 23:59:59'";
+            $filter_indicator = "Date From & Date To";
+        }
+    }
+
+    // Sort Queries
+    // Sort acts independent of the filter
+    if (isset($_GET['sort'])) {
+        if ($sort == 'tid_down') {
+            $sql0 .= " ORDER BY trans_id ASC";
+        }
+        if ($sort == 'tid_up') {
+            $sql0 .= " ORDER BY trans_id DESC";
+        }
+        if ($sort == 'date_down') {
+            $sql0 .= " ORDER BY trans_date ASC";
+        }
+        if ($sort == 'date_up') {
+            $sql0 .= " ORDER BY trans_date DESC";
+        }
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="transactions_style.css">
+</head>
+
+<body>
+    <div class="search-bar-wrapper">
+        <div class="search-bar" id="the-search-bar">
+            <div class="flex-item-search-bar" id="fi-search-bar">
+                <button id="search" onclick="document.getElementById('id01').style.display='block'">Filter</button>
+
+                <div class="flex-item-by">
+                    <label id="sort">Sort By :</label>
+                </div>
+
+                <div class="flex-item-search-by">
+                    <select name="by" onChange="window.location.href=this.value">
+                        <option selected disabled hidden>
+                            <?php if (empty($_GET['sort'])) {?>Tn. ID &darr;<?php } else { ?>
+                                <?php if ($sort == 'tid_down') {?>Tn. ID &darr;<?php } ?>
+                                <?php if ($sort == 'tid_up') {?>Tn. ID &uarr;<?php } ?>
+                                <?php if ($sort == 'date_down') {?>Date &darr;<?php } ?>
+                                <?php if ($sort == 'date_up') {?>Date &uarr;<?php } ?>
+                            <?php } ?>
+                        </option>
+                        <option value="customer_transactions.php?sort=tid_down">Tn. ID &darr;</option>
+                        <option value="customer_transactions.php?sort=tid_up">Tn. ID &uarr;</option>
+                        <option value="customer_transactions.php?sort=date_down">Date &darr;</option>
+                        <option value="customer_transactions.php?sort=date_up">Date &uarr;</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="id01" class="modal">
+
+      <form class="modal-content animate" action="" method="post">
+        <div class="imgcontainer">
+          <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Filter">&times;</span>
+        </div>
+
+        <div class="container">
+            <h1 id="filter">Filter</h1>
+            <p id="filter">(Leave blank to remove filter)</p>
+          <label>Trans. Remarks :</label>
+          <input type="text" placeholder="Enter Remarks" name="search_term">
+
+          <label>Duration (yyyy-mm-dd) :</label>
+          <div class="duration-container">
+              <div class="date-container">
+                  <input id="date" type="text" placeholder="From" name="date_from">
+              </div>
+              <p id="minus">&minus;<b</p>
+              <div class="date-container">
+                  <input id="date" type="text" placeholder="Upto" name="date_to">
+              </div>
+          </div>
+
+
+          <button id="submit" type="submit">Go</button>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="flex-container">
+        <p id="none">Filter : <?php echo $filter_indicator ?></p>
+    </div>
+
+    <div class="flex-container">
+
+        <?php
+            $result = $conn->query($sql0);
+
+            if ($result->num_rows > 0) {?>
+                <table id="transactions">
+                    <tr>
+                        <th>Trans. ID</th>
+                        <th>Date & Time (IST)</th>
+                        <th>Remarks</th>
+                        <th>Debit (INR)</th>
+                        <th>Credit (INR)</th>
+                        <th>Balance (INR)</th>
+                    </tr>
+        <?php
+            // output data of each row
+            while($row = $result->fetch_assoc()) {?>
+                    <tr>
+                        <td><?php echo $row["trans_id"]; ?></td>
+                        <td>
+                            <?php
+                                $time = strtotime($row["trans_date"]);
+                                $sanitized_time = date("d/m/Y, g:i A", $time);
+                                echo $sanitized_time;
+                             ?>
+                        </td>
+                        <td><?php echo $row["remarks"]; ?></td>
+                        <td><?php echo number_format($row["debit"]); ?></td>
+                        <td><?php echo number_format($row["credit"]); ?></td>
+                        <td><?php echo number_format($row["balance"]); ?></td>
+                    </tr>
+            <?php } ?>
+            </table>
+            <?php
+            } else {  ?>
+                <p id="none"> No results found :(</p>
+            <?php }
+            $conn->close(); ?>
+
+    </div>
+
+    <script>
+    // Sticky search-bar
+    $(document).ready(function() {
+        var curr_scroll;
+
+        $(window).scroll(function () {
+            curr_scroll = $(window).scrollTop();
+
+            if ($(window).scrollTop() > 120) {
+                $("#the-search-bar").addClass('search-bar-fixed');
+
+              if ($(window).width() > 855) {
+                  $("#fi-search-bar").addClass('fi-search-bar-fixed');
+              }
+            }
+
+            if ($(window).scrollTop() < 121) {
+                $("#the-search-bar").removeClass('search-bar-fixed');
+
+              if ($(window).width() > 855) {
+                  $("#fi-search-bar").removeClass('fi-search-bar-fixed');
+              }
+            }
+        });
+
+        $(window).resize(function () {
+            var class_name = $("#fi-search-bar").attr('class');
+
+            if ((class_name == "flex-item-search-bar fi-search-bar-fixed") && ($(window).width() < 856)) {
+                $("#fi-search-bar").removeClass('fi-search-bar-fixed');
+            }
+
+            if ((class_name == "flex-item-search-bar") && ($(window).width() > 855) && (curr_scroll > 120)) {
+                $("#fi-search-bar").addClass('fi-search-bar-fixed');
+            }
+        });
+
+        // Get the modal
+        var modal = document.getElementById('id01');
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    });
+    </script>
+
+</body>
+</html>
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_customer.php";
+    include "connect.php";
+    include "header.php";
+    include "customer_navbar.php";
+    include "customer_sidebar.php";
+    include "session_timeout.php";
+
+    if (isset($_GET['cust_id'])) {
+        $sql0 = "DELETE FROM beneficiary".$_SESSION['loggedIn_cust_id'].
+                " WHERE benef_cust_id=".$_GET['cust_id'];
+    }
+
+    $success = 0;
+    if (($conn->query($sql0) === TRUE)) {
+        $sql0 = "SELECT MAX(benef_id) FROM beneficiary".$_SESSION['loggedIn_cust_id'];
+        $result = $conn->query($sql0);
+        $row = $result->fetch_assoc();
+
+        $id = $row["MAX(benef_id)"] + 1;
+        $sql1 = "ALTER TABLE beneficiary".$_SESSION['loggedIn_cust_id']." AUTO_INCREMENT=".$id;
+
+        $conn->query($sql1);
+        $success = 1;
+    }
+
+    if (isset($_GET['redirect'])) {
+        $_SESSION['auto_delete_benef'] = true;
+        header("location:/beneficiary.php");
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="action_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+                <?php
+                    if ($success = 1) { ?>
+                        <p id="info"><?php echo "Beneficiary Deleted Successfully !"; ?></p>
+                    <?php
+                    }
+                    else { ?>
+                        <p id="info"><?php echo "Error: " . $conn->error . "<br>"; ?></p>
+                    <?php
+                    }
+                ?>
+        </div>
+        <?php $conn->close(); ?>
+
+        <div class="flex-item">
+            <a href="/beneficiary.php" class="button">Go Back</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
+ 81  net-banking/delete_customer.php 
+@@ -0,0 +1,81 @@
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_admin.php";
+    include "connect.php";
+    include "header.php";
+    include "user_navbar.php";
+    include "admin_sidebar.php";
+    include "session_timeout.php";
+
+    if (isset($_GET['cust_id'])) {
+        $_SESSION['cust_id'] = $_GET['cust_id'];
+    }
+
+    $sql0 = "DELETE FROM customer WHERE cust_id=".$_SESSION['cust_id'];
+    $sql1 = "DROP TABLE passbook".$_SESSION['cust_id'];
+    $sql2 = "DROP TABLE beneficiary".$_SESSION['cust_id'];
+
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="action_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <?php
+                if (($conn->query($sql0) === TRUE)) { ?>
+                    <p id="info"><?php echo "Customer Deleted Successfully !"; ?></p>
+                <?php
+                }
+                else { ?>
+                    <p id="info"><?php echo "Error: " . $sql0 . "<br>" . $conn->error . "<br>"; ?></p>
+                <?php
+                }
+            ?>
+        </div>
+
+        <div class="flex-item">
+            <?php
+                if (($conn->query($sql1) === TRUE)) { ?>
+                    <p id="info"><?php echo "Customer's Passbook Deleted Successfully !"; ?></p>
+                <?php
+                }
+                else { ?>
+                    <p id="info"><?php echo "Error: " . $sql1 . "<br>" . $conn->error . "<br>"; ?></p>
+                <?php
+                }
+            ?>
+        </div>
+
+        <div class="flex-item">
+            <?php
+                if (($conn->query($sql2) === TRUE)) { ?>
+                    <p id="info"><?php echo "Customer's Beneficiary Deleted Successfully !"; ?></p>
+                <?php
+                }
+                else { ?>
+                    <p id="info"><?php echo "Error: " . $sql2 . "<br>" . $conn->error . "<br>"; ?></p>
+                <?php
+                }
+            ?>
+        </div>
+        <?php $conn->close(); ?>
+
+        <div class="flex-item">
+            <a href="/manage_customers.php" class="button">Go Back</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
+ 76  net-banking/easter_egg.php 
+@@ -0,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="easter_egg_style.css">
+</head>
+<body>
+    <!-- The Easter Egg Modal -->
+    <div id="eEgg_modal" class="modal-eEgg">
+        <div class="modal-content-eEgg">
+            <div class="caption" style="border-radius: 5px 5px 0 0;">
+                <h3>They float,' it growled, 'they float, Georgie, and when
+                    you’re down here with me, you’ll float, too–'</h3>
+            </div>
+            <img id="eEgg_image" src="/images/pennywise.jpg">
+            <div class="caption" style="border-radius: 0 0 5px 5px;">
+                <h3 id="footer" style="text-align:center;">Going back in 20s...</h3>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+var old_time = 0;
+var count = 1;
+var eEgg_flag = false;
+var modal = document.getElementById('eEgg_modal');
+var footer = document.getElementById('footer');
+function eEgg_func(){
+    var d = new Date();
+    var n = d.getTime();
+    var new_time = Math.ceil(n/1000);
+    if ((new_time - old_time) <= 1) {
+        count++;
+    }
+    else {
+        count = 1;
+    }
+    old_time = new_time;
+    if (count > 7 && !eEgg_flag) {
+        modal.style.display = "block";
+        eEgg_flag = true;
+        // Timeout
+        setTimeout(function () {
+            modal.style.display = "none";
+        }, 21000);
+        //Timeout text display in the footer
+        var now = new Date().getTime();
+        var countDownDate = now + 21000;
+        setInterval(function() {
+          // Get todays date and time
+          var now = new Date().getTime();
+          // Find the distance between now an the count down date
+          var distance = countDownDate - now;
+          // Time calculations for seconds
+          var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+          // Display the result in the element with id="demo"
+          document.getElementById("footer").innerHTML =
+                            "Going back in "+ seconds + "s...";
+        }, 1000);
+    }
+}
+</script>
+ 56  net-banking/easter_egg_style.css 
+@@ -0,0 +1,56 @@
+/* The Modal (background) */
+.modal-eEgg {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content (image) */
+.modal-content-eEgg {
+    margin: 5% auto 15% auto;
+    width: auto;
+    max-width: 700px;
+    /* Animations */
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+.caption {
+    font-family: Roboto-Regular;
+    font-size: 18px;
+    padding: 2px 16px;
+    color: white;
+    background: #b71c1c;
+    margin-left: 10%;
+    margin-right: 10%;
+}
+
+img[id="eEgg_image"] {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    height: 80%;
+    width: 80%;
+    max-width: 700px;
+}
+ 187  net-banking/edit_customer.php 
+@@ -0,0 +1,187 @@
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_admin.php";
+    include "connect.php";
+    include "header.php";
+    include "user_navbar.php";
+    include "admin_sidebar.php";
+    include "session_timeout.php";
+
+    if (isset($_GET['cust_id'])) {
+        $_SESSION['cust_id'] = $_GET['cust_id'];
+    }
+
+    $sql0 = "SELECT * FROM customer WHERE cust_id=".$_SESSION['cust_id'];
+    $sql1 = "SELECT * FROM passbook".$_SESSION['cust_id']." WHERE trans_id=(
+                    SELECT MAX(trans_id) FROM passbook".$_SESSION['cust_id'].")";
+
+    $result0 = $conn->query($sql0);
+    $result1 = $conn->query($sql1);
+
+    if ($result0->num_rows > 0) {
+        // output data of each row
+        while($row = $result0->fetch_assoc()) {
+            $fname = $row["first_name"];
+            $lname = $row["last_name"];
+            $gender = $row["gender"];
+            $dob = $row["dob"];
+            $aadhar = $row["aadhar_no"];
+            $email = $row["email"];
+            $phno = $row["phone_no"];
+            $address = $row["address"];
+            $branch = $row["branch"];
+            $acno = $row["account_no"];
+            $pin = $row["pin"];
+            $cus_uname = $row["uname"];
+            $cus_pwd = $row["pwd"];
+        }
+    }
+
+    if ($result1->num_rows > 0) {
+        // output data of each row
+        while($row = $result1->fetch_assoc()) {
+            $balance = $row["balance"];
+        }
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="customer_add_style.css">
+</head>
+
+<body>
+    <form class="add_customer_form" action="edit_customer_action.php" method="post">
+        <div class="flex-container-form_header">
+            <h1 id="form_header">Edit/View Customer details . . .</h1>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Customer ID : <label id="info_label"> <?php echo $_SESSION['cust_id'] ?> </label></label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>First Name :</label><br>
+                <input name="fname" size="30" type="text" value="<?php echo $fname ?>" required />
+            </div>
+            <div  class=container>
+                <label>Last Name :</b></label><br>
+                <input name="lname" size="30" type="text" value="<?php echo $lname ?>" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Balance (INR) : <label id="info_label"> <?php echo number_format($balance) ?> </label></label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Gender :
+                    <label id="info_label">
+                    <?php
+                        if ($gender == "male") {echo "Male";}
+                        elseif ($gender == "female") {echo "Female";}
+                        else {echo "Others";}
+                    ?>
+                    <label>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Date of Birth :</label><br>
+                <input name="dob" size="30" type="text" placeholder="yyyy-mm-dd" value="<?php echo $dob ?>" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Aadhar No :</label><br>
+                <input name="aadhar" size="25" type="text" value="<?php echo $aadhar ?>" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Email-ID :</label><br>
+                <input name="email" size="30" type="text" value="<?php echo $email ?>" required />
+            </div>
+            <div  class=container>
+                <label>Phone No. :</b></label><br>
+                <input name="phno" size="30" type="text" value="<?php echo $phno ?>" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Address :</label><br>
+                <textarea name="address" required /><?php echo $address ?></textarea>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Bank Branch :</label>
+            </div>
+            <div  class=container>
+                <select name="branch">
+                    <option value="delhi" <?php if ($branch == 'delhi') {?> selected="selected" <?php }?>>Delhi</option>
+                    <option value="newyork" <?php if ($branch == 'newyork') {?> selected="selected" <?php }?>>New York</option>
+                    <option value="paris" <?php if ($branch == 'paris') {?> selected="selected" <?php }?>>Paris</option>
+                    <option value="riyadh" <?php if ($branch == 'riyadh') {?> selected="selected" <?php }?>>Riyadh</option>
+                    <option value="moscow" <?php if ($branch == 'moscow') {?> selected="selected" <?php }?>>Moscow</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Account No :</label><br>
+                <input name="acno" size="25" type="text" value="<?php echo $acno ?>" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div  class=container>
+                <label>PIN(4 digit) :</b></label><br>
+                <input name="pin" size="15" type="text" value="<?php echo $pin ?>" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class=container>
+                <label>Username :</label><br>
+                <input name="cus_uname" size="30" type="text" value="<?php echo $cus_uname ?>" required />
+            </div>
+            <div  class=container>
+                <label>Password :</b></label><br>
+                <input name="cus_pwd" size="30" type="text" value="<?php echo $cus_pwd ?>" required />
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class="container">
+                <a href="/manage_customers.php" class="button">Go Back</a>
+            </div>
+            <div class="container">
+                <button type="submit">Update</button>
+            </div>
+        </div>
+
+    </form>
+
+</body>
+</html>
+ 78  net-banking/edit_customer_action.php 
+@@ -0,0 +1,78 @@
+<?php
+    /* Avoid multiple sessions warning
+    Check if session is set before starting a new one. */
+    if(!isset($_SESSION)) {
+        session_start();
+    }
+
+    include "validate_admin.php";
+    include "connect.php";
+    include "header.php";
+    include "user_navbar.php";
+    include "admin_sidebar.php";
+    include "session_timeout.php";
+
+    if (isset($_GET['cust_id'])) {
+        $_SESSION['cust_id'] = $_GET['cust_id'];
+    }
+
+    $fname = mysqli_real_escape_string($conn, $_POST["fname"]);
+    $lname = mysqli_real_escape_string($conn, $_POST["lname"]);
+    $dob = mysqli_real_escape_string($conn, $_POST["dob"]);
+    $aadhar = mysqli_real_escape_string($conn, $_POST["aadhar"]);
+    $email = mysqli_real_escape_string($conn, $_POST["email"]);
+    $phno = mysqli_real_escape_string($conn, $_POST["phno"]);
+    $address = mysqli_real_escape_string($conn, $_POST["address"]);
+    $branch = mysqli_real_escape_string($conn, $_POST["branch"]);
+    $acno = mysqli_real_escape_string($conn, $_POST["acno"]);
+    $pin = mysqli_real_escape_string($conn, $_POST["pin"]);
+    $cus_uname = mysqli_real_escape_string($conn, $_POST["cus_uname"]);
+    $cus_pwd = mysqli_real_escape_string($conn, $_POST["cus_pwd"]);
+
+    $sql0 = "UPDATE customer SET first_name = '$fname',
+                                 last_name = '$lname',
+                                 dob = '$dob',
+                                 aadhar_no = '$aadhar',
+                                 email = '$email',
+                                 phone_no = '$phno',
+                                 address = '$address',
+                                 branch = '$branch',
+                                 account_no = '$acno',
+                                 pin = '$pin',
+                                 uname = '$cus_uname',
+                                 pwd = '$cus_pwd'
+                            WHERE cust_id=".$_SESSION['cust_id'];
+
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="action_style.css">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            <?php
+                if (($conn->query($sql0) === TRUE)) { ?>
+                    <p id="info"><?php echo "Values Updated Successfully !"; ?></p>
+                <?php
+                }
+                else { ?>
+                    <p id="info"><?php echo "Error: " . $sql0 . "<br>" . $conn->error . "<br>"; ?></p>
+                <?php
+                }
+            ?>
+        </div>
+        <?php $conn->close(); ?>
+
+        <div class="flex-item">
+            <a href="/manage_customers.php" class="button">Go Back</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
+ 34  net-banking/fonts.css 
+@@ -0,0 +1,34 @@
+@font-face {
+    font-family: 'Roboto-Bold';
+    src: url('fonts/Roboto/Roboto-Bold.ttf');
+}
+
+@font-face {
+    font-family: 'Roboto-Regular';
+    src: url('fonts/Roboto/Roboto-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Roboto-Light';
+    src: url('fonts/Roboto/Roboto-Light.ttf');
+}
+
+@font-face {
+    font-family: 'Roboto-Thin';
+    src: url('fonts/Roboto/Roboto-Thin.ttf');
+}
+
+@font-face {
+    font-family: 'OpenSans-Bold';
+    src: url('fonts/OpenSans/OpenSans-Bold.ttf');
+}
+
+@font-face {
+    font-family: 'OpenSans-Regular';
+    src: url('fonts/OpenSans/OpenSans-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'OpenSans-Light';
+    src: url('fonts/OpenSans/OpenSans-Light.ttf');
+}
+ 
